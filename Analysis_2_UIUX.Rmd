@@ -1,0 +1,108 @@
+---
+title: 'The Impact of Device Type and Payment Method on Cart Abandonment: An Experimental
+  Analysis'
+author: "Chi Nghia Nguyen"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# 1. Research Question
+
+**How do device type and preferred payment method impact the cart abandonment rate of users?**
+
+# 2. Methodology
+
+To answer this research question, this study employs an **Experimental Design and A/B Testing** approach. Specifically, a **Two-Way ANOVA** (Analysis of Variance) is utilized to evaluate the main effects and the interaction effect of device type and payment method on the cart abandonment rate [2].
+
+This quantitative method is chosen because it allows for the examination of causal inference between categorical independent variables (device type, payment method) and a continuous dependent variable (abandonment rate). The underlying mathematical model for this analysis can be expressed as follows:
+
+$$ Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 (X_1 \times X_2) + \epsilon $$
+
+*(Where: $Y$ is cart_abandonment_rate, $X_1$ is device_type, $X_2$ is preferred_payment_method, and $\epsilon$ is the random error term)* [3].
+
+### Data Import and Preparation
+
+```{r setup, include=FALSE}
+# Set default options for R chunks (hide warnings and messages)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r import_data}
+# ---------------------------------------------------------
+# CLEAN CODE: Step 1 - Data Import and Preprocessing
+# ---------------------------------------------------------
+
+# Load required libraries for visualization and data manipulation [1]
+library(ggplot2)
+library(dplyr)
+
+# 1. Import the E-commerce dataset
+
+ecommerce_data <- read.csv("/Users/nguyenchinghia/Downloads/e_commerce_shopper_behaviour_and_lifestyle.csv")
+
+# 2. Select the three key variables for the ANOVA model
+analysis_data <- ecommerce_data %>%
+  select(device_type, preferred_payment_method, cart_abandonment_rate) %>%
+  na.omit() # Remove any missing values to ensure accurate analysis
+
+# 3. Convert grouping variables to Factors (Mandatory for ANOVA in R)
+analysis_data$device_type <- as.factor(analysis_data$device_type)
+analysis_data$preferred_payment_method <- as.factor(analysis_data$preferred_payment_method)
+
+# Display the first 6 rows of the cleaned dataset
+head(analysis_data)
+```
+
+### Data Visualization
+
+```{r visualization}
+# ---------------------------------------------------------
+# CLEAN CODE: Step 2 - Visualizing Experimental Data
+# ---------------------------------------------------------
+
+# Create a Boxplot to visually compare Cart Abandonment Rate by Device Type
+ggplot(analysis_data, aes(x = device_type, y = cart_abandonment_rate, fill = device_type)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Cart Abandonment Rate by Device Type",
+       x = "Device Type",
+       y = "Cart Abandonment Rate")
+
+# Create an Interaction Plot to examine the combined effect of Payment Method and Device Type
+ggplot(analysis_data, aes(x = preferred_payment_method, y = cart_abandonment_rate, fill = device_type)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Interaction Effect of Payment Method and Device Type on Abandonment Rate",
+       x = "Payment Method",
+       y = "Cart Abandonment Rate")
+```
+
+### Statistical Analysis: Two-Way ANOVA
+
+```{r anova_analysis}
+# ---------------------------------------------------------
+# CLEAN CODE: Step 3 - Running the Statistical Model
+# ---------------------------------------------------------
+
+# Build a Two-Way ANOVA model to assess main effects and interaction effects (using the * operator) [4]
+anova_model <- aov(cart_abandonment_rate ~ device_type * preferred_payment_method, data = analysis_data)
+
+# Display the summary of the results (P-values, F-values) for causal inference [5]
+summary(anova_model)
+```
+
+# 3. Findings & Implications
+
+**1. Findings:**
+
+- **Main Effect 1:** Device type alone does not significantly affect cart abandonment rate (p-value = 0.5704 > 0.05). In fact, customers abandon carts at similar rates across three given devices including Mobile, Desktop, and Tablet platforms.
+
+- **Main Effect 2:** The preferred payment method, as an independent factor, does not show a significant impact on cart abandonment (p-value = 0.4293 > 0.05).
+
+- **Interaction Effect:** However, there is a **marginally significant interaction** between device type and payment method (p-value = 0.0565, approaching the 0.05 threshold). This suggests that certain combinations of devices and payment gateways may create friction during the checkout process.
+
+**2. Implications:**
+
+According to the causal inference from the ANOVA model, **E-commerce platforms should not treat devices or payment methods as isolated issues**. The marginal interaction effect strongly recommends that management should conduct targeted UI/UX testing on specific payment flows across different devices. For example, while a payment method might function flawlessly on a desktop, its interface might be cumbersome on a mobile screen, leading to a spike in abandonment.

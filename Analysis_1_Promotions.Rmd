@@ -1,0 +1,110 @@
+---
+title: 'The Impact of Loyalty Programs and Coupon Usage on Cart Abandonment: An Experimental
+  Analysis'
+author: "Chi Nghia Nguyen"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# 1. Research Question
+
+**How do loyalty program membership and coupon usage frequency impact the cart abandonment rate of users?**
+
+# 2. Methodology
+
+To answer this research question, this study employs an **Experimental Design and A/B Testing** approach. Specifically, a **Two-Way ANOVA** (Analysis of Variance) is utilized to evaluate the main effects and the interaction effect of loyalty program membership and coupon usage on the cart abandonment rate.
+
+This quantitative method is chosen because it allows for the examination of causal inference between categorical independent variables (loyalty status, coupon usage) and a continuous dependent variable (abandonment rate). The underlying mathematical model for this analysis can be expressed as follows:
+
+$$ Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 (X_1 \times X_2) + \epsilon $$
+
+*(Where: $Y$ is cart_abandonment_rate, $X_1$ is loyalty_program_member, $X_2$ is coupon_usage_frequency, and $\epsilon$ is the random error term).*
+
+### Data Import and Preparation
+
+```{r setup, include=FALSE}
+# Set default options for R chunks (hide warnings and messages)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r import_data}
+# ---------------------------------------------------------
+# CLEAN CODE: Step 1 - Data Import and Preprocessing
+# ---------------------------------------------------------
+
+# Load required libraries for visualization and data manipulation
+library(ggplot2)
+library(dplyr)
+
+# 1. Import the E-commerce dataset
+ecommerce_data <- read.csv("/Users/nguyenchinghia/Downloads/e_commerce_shopper_behaviour_and_lifestyle.csv")
+
+# 2. Select the three key variables for the ANOVA model
+analysis_data <- ecommerce_data %>%
+  select(loyalty_program_member, coupon_usage_frequency, cart_abandonment_rate) %>%
+  na.omit() # Remove any missing values to ensure accurate analysis
+
+# 3. Convert grouping variables to Factors and add clear labels
+analysis_data$loyalty_program_member <- factor(analysis_data$loyalty_program_member, 
+                                               levels = c(0, 1), 
+                                               labels = c("Non-Member", "Member"))
+
+analysis_data$coupon_usage_frequency <- as.factor(analysis_data$coupon_usage_frequency)
+
+# Display the first 6 rows of the cleaned dataset
+head(analysis_data)
+```
+
+### Data Visualization
+
+```{r visualization}
+# ---------------------------------------------------------
+# CLEAN CODE: Step 2 - Visualizing Experimental Data
+# ---------------------------------------------------------
+
+# Create a Boxplot to visually compare Cart Abandonment Rate between Loyalty Members and Non-members
+ggplot(analysis_data, aes(x = loyalty_program_member, y = cart_abandonment_rate, fill = loyalty_program_member)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Cart Abandonment Rate by Loyalty Program Membership",
+       x = "Loyalty Program Member (Yes/No)",
+       y = "Cart Abandonment Rate")
+
+# Create an Interaction Plot to examine the combined effect of Loyalty and Coupon Usage
+ggplot(analysis_data, aes(x = coupon_usage_frequency, y = cart_abandonment_rate, fill = loyalty_program_member)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Interaction Effect of Loyalty and Coupon Usage on Abandonment Rate",
+       x = "Coupon Usage Frequency",
+       y = "Cart Abandonment Rate")
+```
+
+### Statistical Analysis: Two-Way ANOVA
+
+```{r anova_analysis}
+# ---------------------------------------------------------
+# CLEAN CODE: Step 3 - Running the Statistical Model
+# ---------------------------------------------------------
+
+# Build a Two-Way ANOVA model to assess main effects and interaction effects (using the * operator)
+anova_model <- aov(cart_abandonment_rate ~ loyalty_program_member * coupon_usage_frequency, data = analysis_data)
+
+# Display the summary of the results (P-values, F-values) for causal inference
+summary(anova_model)
+```
+
+# 3. Findings & Implications
+
+**1. Findings:**
+
+- **Main Effect 1:** Loyalty program membership does **not** significantly reduce cart abandonment rate (p-value = 0.7707 > 0.05). Both members and non-members abandon their carts at nearly identical rates.
+
+- **Main Effect 2:** Coupon usage frequency shows a marginal, but statistically non-significant impact on cart abandonment rate (p-value = 0.0563 > 0.05). 
+
+- **Interaction Effect:** There is **no significant interaction** between being a loyalty member and coupon usage frequency (p-value = 0.4163 > 0.05). The combined promotional efforts do not yield a synergistic effect in retaining the carts.
+
+**2. Implications:**
+
+Acorrding to the causal inference drawn from this experimental design, **E-commerce platforms should not heavily rely on the current loyalty programs or coupon distributions as the primary strategy to reduce cart abandonment**. In fact, the statistical evidence reveals these promotional tactics are ineffective for this specific problem. Therefore, management should instead redirect their analytical focus and resources toward other potential causes of cart abandonment.
